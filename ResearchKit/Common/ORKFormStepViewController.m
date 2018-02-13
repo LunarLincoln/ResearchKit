@@ -294,7 +294,7 @@
 }
 
 - (instancetype)ORKFormStepViewController_initWithResult:(ORKResult *)result {
-    _defaultSource = [ORKAnswerDefaultSource sourceWithHealthStore:[HKHealthStore new]];
+//    _defaultSource = [ORKAnswerDefaultSource sourceWithHealthStore:nil];
     if (result) {
         NSAssert([result isKindOfClass:[ORKStepResult class]], @"Expect a ORKStepResult instance");
 
@@ -339,20 +339,20 @@
     }
     
     BOOL refreshDefaultsPending = NO;
-    if (types.count) {
-        NSSet<HKObjectType *> *alreadyRequested = [[self taskViewController] requestedHealthTypesForRead];
-        if (![types isSubsetOfSet:alreadyRequested]) {
-            refreshDefaultsPending = YES;
-            [_defaultSource.healthStore requestAuthorizationToShareTypes:nil readTypes:types completion:^(BOOL success, NSError *error) {
-                if (!success) {
-                    ORK_Log_Debug(@"Authorization: %@",error);
-                }
-                dispatch_async(dispatch_get_main_queue(), ^{
-                    [self refreshDefaults];
-                });
-            }];
-        }
-    }
+//    if (types.count) {
+//        NSSet<HKObjectType *> *alreadyRequested = [[self taskViewController] requestedHealthTypesForRead];
+//        if (![types isSubsetOfSet:alreadyRequested]) {
+//            refreshDefaultsPending = YES;
+//            [_defaultSource.healthStore requestAuthorizationToShareTypes:nil readTypes:types completion:^(BOOL success, NSError *error) {
+//                if (!success) {
+//                    ORK_Log_Debug(@"Authorization: %@",error);
+//                }
+//                dispatch_async(dispatch_get_main_queue(), ^{
+//                    [self refreshDefaults];
+//                });
+//            }];
+//        }
+//    }
     if (!refreshDefaultsPending) {
         [self refreshDefaults];
     }
@@ -394,35 +394,35 @@
 }
 
 - (void)refreshDefaults {
-    NSArray *formItems = [self formItems];
-    ORKAnswerDefaultSource *source = _defaultSource;
-    __weak typeof(self) weakSelf = self;
-    dispatch_async(dispatch_get_global_queue(QOS_CLASS_USER_INITIATED, 0), ^{
-        dispatch_semaphore_t sem = dispatch_semaphore_create(0);
-        __block NSMutableDictionary *defaults = [NSMutableDictionary dictionary];
-        for (ORKFormItem *formItem in formItems) {
-            [source fetchDefaultValueForAnswerFormat:formItem.answerFormat handler:^(id defaultValue, NSError *error) {
-                if (defaultValue != nil) {
-                    defaults[formItem.identifier] = defaultValue;
-                } else if (error != nil) {
-                    ORK_Log_Warning(@"Error fetching default for %@: %@", formItem, error);
-                }
-                dispatch_semaphore_signal(sem);
-            }];
-        }
-        for (__unused ORKFormItem *formItem in formItems) {
-            dispatch_semaphore_wait(sem, DISPATCH_TIME_FOREVER);
-        }
-        
-        // All fetches have completed.
-        dispatch_async(dispatch_get_main_queue(), ^{
-            __strong typeof(weakSelf) strongSelf = weakSelf;
-            [strongSelf updateDefaults:defaults];
-        });
-        
-    });
-    
-    
+//    NSArray *formItems = [self formItems];
+//    ORKAnswerDefaultSource *source = _defaultSource;
+//    __weak typeof(self) weakSelf = self;
+//    dispatch_async(dispatch_get_global_queue(QOS_CLASS_USER_INITIATED, 0), ^{
+//        dispatch_semaphore_t sem = dispatch_semaphore_create(0);
+//        __block NSMutableDictionary *defaults = [NSMutableDictionary dictionary];
+//        for (ORKFormItem *formItem in formItems) {
+//            [source fetchDefaultValueForAnswerFormat:formItem.answerFormat handler:^(id defaultValue, NSError *error) {
+//                if (defaultValue != nil) {
+//                    defaults[formItem.identifier] = defaultValue;
+//                } else if (error != nil) {
+//                    ORK_Log_Warning(@"Error fetching default for %@: %@", formItem, error);
+//                }
+//                dispatch_semaphore_signal(sem);
+//            }];
+//        }
+//        for (__unused ORKFormItem *formItem in formItems) {
+//            dispatch_semaphore_wait(sem, DISPATCH_TIME_FOREVER);
+//        }
+//        
+//        // All fetches have completed.
+//        dispatch_async(dispatch_get_main_queue(), ^{
+//            __strong typeof(weakSelf) strongSelf = weakSelf;
+//            [strongSelf updateDefaults:defaults];
+//        });
+//        
+//    });
+//    
+//    
 }
 
 - (void)removeAnswerForIdentifier:(NSString *)identifier {

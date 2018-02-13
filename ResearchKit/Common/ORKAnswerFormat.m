@@ -81,12 +81,9 @@ NSNumberFormatterStyle ORKNumberFormattingStyleConvert(ORKNumberFormattingStyle 
     NSMutableDictionary *_unitsTable;
 }
 
-@synthesize healthStore=_healthStore;
+//@synthesize healthStore=_healthStore;
 
-+ (instancetype)sourceWithHealthStore:(HKHealthStore *)healthStore {
-    ORKAnswerDefaultSource *source = [[ORKAnswerDefaultSource alloc] initWithHealthStore:healthStore];
-    return source;
-}
+
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wobjc-designated-initializers"
@@ -95,20 +92,20 @@ NSNumberFormatterStyle ORKNumberFormattingStyleConvert(ORKNumberFormattingStyle 
 }
 #pragma clang diagnostic pop
 
-- (instancetype)initWithHealthStore:(HKHealthStore *)healthStore {
-    self = [super init];
-    if (self) {
-        _healthStore = healthStore;
-        
-        if ([[NSProcessInfo processInfo] isOperatingSystemAtLeastVersion:(NSOperatingSystemVersion){.majorVersion = 8, .minorVersion = 2, .patchVersion = 0}]) {
-            [[NSNotificationCenter defaultCenter] addObserver:self
-                                                     selector:@selector(healthKitUserPreferencesDidChange:)
-                                                         name:HKUserPreferencesDidChangeNotification
-                                                       object:healthStore];
-        }
-    }
-    return self;
-}
+//- (instancetype)initWithHealthStore:(HKHealthStore *)healthStore {
+//    self = [super init];
+//    if (self) {
+//        _healthStore = healthStore;
+//        
+//        if ([[NSProcessInfo processInfo] isOperatingSystemAtLeastVersion:(NSOperatingSystemVersion){.majorVersion = 8, .minorVersion = 2, .patchVersion = 0}]) {
+//            [[NSNotificationCenter defaultCenter] addObserver:self
+//                                                     selector:@selector(healthKitUserPreferencesDidChange:)
+//                                                         name:HKUserPreferencesDidChangeNotification
+//                                                       object:healthStore];
+//        }
+//    }
+//    return self;
+//}
 
 - (void)dealloc {
     [[NSNotificationCenter defaultCenter] removeObserver:self];
@@ -120,30 +117,30 @@ NSNumberFormatterStyle ORKNumberFormattingStyleConvert(ORKNumberFormattingStyle 
 
 - (id)defaultValueForCharacteristicType:(HKCharacteristicType *)characteristicType error:(NSError * __autoreleasing *)error {
     id result = nil;
-    if ([[characteristicType identifier] isEqualToString:HKCharacteristicTypeIdentifierDateOfBirth]) {
-        NSDate *dob = [_healthStore dateOfBirthWithError:error];
-        if (dob) {
-            result = dob;
-        }
-    }
-    if ([[characteristicType identifier] isEqualToString:HKCharacteristicTypeIdentifierBloodType]) {
-        HKBloodTypeObject *bloodType = [_healthStore bloodTypeWithError:error];
-        if (bloodType && bloodType.bloodType != HKBloodTypeNotSet) {
-            result = ORKHKBloodTypeString(bloodType.bloodType);
-        }
-        if (result) {
-            result = @[result];
-        }
-    }
-    if ([[characteristicType identifier] isEqualToString:HKCharacteristicTypeIdentifierBiologicalSex]) {
-        HKBiologicalSexObject *biologicalSex = [_healthStore biologicalSexWithError:error];
-        if (biologicalSex && biologicalSex.biologicalSex != HKBiologicalSexNotSet) {
-            result = ORKHKBiologicalSexString(biologicalSex.biologicalSex);
-        }
-        if (result) {
-            result = @[result];
-        }
-    }
+//    if ([[characteristicType identifier] isEqualToString:HKCharacteristicTypeIdentifierDateOfBirth]) {
+//        NSDate *dob = [_healthStore dateOfBirthWithError:error];
+//        if (dob) {
+//            result = dob;
+//        }
+//    }
+//    if ([[characteristicType identifier] isEqualToString:HKCharacteristicTypeIdentifierBloodType]) {
+//        HKBloodTypeObject *bloodType = [_healthStore bloodTypeWithError:error];
+//        if (bloodType && bloodType.bloodType != HKBloodTypeNotSet) {
+//            result = ORKHKBloodTypeString(bloodType.bloodType);
+//        }
+//        if (result) {
+//            result = @[result];
+//        }
+//    }
+//    if ([[characteristicType identifier] isEqualToString:HKCharacteristicTypeIdentifierBiologicalSex]) {
+//        HKBiologicalSexObject *biologicalSex = [_healthStore biologicalSexWithError:error];
+//        if (biologicalSex && biologicalSex.biologicalSex != HKBiologicalSexNotSet) {
+//            result = ORKHKBiologicalSexString(biologicalSex.biologicalSex);
+//        }
+//        if (result) {
+//            result = @[result];
+//        }
+//    }
     return result;
 }
 
@@ -153,43 +150,43 @@ NSNumberFormatterStyle ORKNumberFormattingStyleConvert(ORKNumberFormattingStyle 
         return;
     }
     
-    HKHealthStore *healthStore = _healthStore;
-    NSSortDescriptor *sortDescriptor = [[NSSortDescriptor alloc] initWithKey:HKSampleSortIdentifierEndDate ascending:NO];
-    dispatch_async(dispatch_get_global_queue(QOS_CLASS_USER_INITIATED, 0), ^{
-        HKSampleQuery *sampleQuery = [[HKSampleQuery alloc] initWithSampleType:quantityType predicate:nil limit:1 sortDescriptors:@[sortDescriptor] resultsHandler:^(HKSampleQuery *query, NSArray *results, NSError *error) {
-            HKQuantitySample *sample = results.firstObject;
-            id value = nil;
-            if (sample) {
-                if (unit == [HKUnit percentUnit]) {
-                    value = @(100 * [sample.quantity doubleValueForUnit:unit]);
-                } else {
-                    value = @([sample.quantity doubleValueForUnit:unit]);
-                }
-            }
-            handler(value, error);
-        }];
-        [healthStore executeQuery:sampleQuery];
-    });
+//    HKHealthStore *healthStore = _healthStore;
+//    NSSortDescriptor *sortDescriptor = [[NSSortDescriptor alloc] initWithKey:HKSampleSortIdentifierEndDate ascending:NO];
+//    dispatch_async(dispatch_get_global_queue(QOS_CLASS_USER_INITIATED, 0), ^{
+//        HKSampleQuery *sampleQuery = [[HKSampleQuery alloc] initWithSampleType:quantityType predicate:nil limit:1 sortDescriptors:@[sortDescriptor] resultsHandler:^(HKSampleQuery *query, NSArray *results, NSError *error) {
+//            HKQuantitySample *sample = results.firstObject;
+//            id value = nil;
+//            if (sample) {
+//                if (unit == [HKUnit percentUnit]) {
+//                    value = @(100 * [sample.quantity doubleValueForUnit:unit]);
+//                } else {
+//                    value = @([sample.quantity doubleValueForUnit:unit]);
+//                }
+//            }
+//            handler(value, error);
+//        }];
+//        [healthStore executeQuery:sampleQuery];
+//    });
 }
 
 - (void)fetchDefaultValueForAnswerFormat:(ORKAnswerFormat *)answerFormat handler:(void(^)(id defaultValue, NSError *error))handler {
     HKObjectType *objectType = [answerFormat healthKitObjectType];
     BOOL handled = NO;
-    if (objectType) {
-        if ([HKHealthStore isHealthDataAvailable]) {
-            if ([answerFormat isKindOfClass:[ORKHealthKitCharacteristicTypeAnswerFormat class]]) {
-                NSError *error = nil;
-                id defaultValue = [self defaultValueForCharacteristicType:(HKCharacteristicType *)objectType error:&error];
-                handler(defaultValue, error);
-                handled = YES;
-            } else if ([answerFormat isKindOfClass:[ORKHealthKitQuantityTypeAnswerFormat class]]) {
-                [self updateHealthKitUnitForAnswerFormat:answerFormat force:NO];
-                HKUnit *unit = [answerFormat healthKitUserUnit];
-                [self fetchDefaultValueForQuantityType:(HKQuantityType *)objectType unit:unit handler:handler];
-                handled = YES;
-            }
-        }
-    }
+//    if (objectType) {
+//        if ([HKHealthStore isHealthDataAvailable]) {
+//            if ([answerFormat isKindOfClass:[ORKHealthKitCharacteristicTypeAnswerFormat class]]) {
+//                NSError *error = nil;
+//                id defaultValue = [self defaultValueForCharacteristicType:(HKCharacteristicType *)objectType error:&error];
+//                handler(defaultValue, error);
+//                handled = YES;
+//            } else if ([answerFormat isKindOfClass:[ORKHealthKitQuantityTypeAnswerFormat class]]) {
+//                [self updateHealthKitUnitForAnswerFormat:answerFormat force:NO];
+//                HKUnit *unit = [answerFormat healthKitUserUnit];
+//                [self fetchDefaultValueForQuantityType:(HKQuantityType *)objectType unit:unit handler:handler];
+//                handled = YES;
+//            }
+//        }
+//    }
     if (!handled) {
         handler(nil, nil);
     }
@@ -202,30 +199,30 @@ NSNumberFormatterStyle ORKNumberFormattingStyleConvert(ORKNumberFormattingStyle 
         return unit;
     }
     
-    if (unit == nil && [objectType isKindOfClass:[HKQuantityType class]] && [HKHealthStore isHealthDataAvailable]) {
-        unit = _unitsTable[objectType];
-        if (unit) {
-            return unit;
-        }
-        if (!_unitsTable) {
-            _unitsTable = [NSMutableDictionary dictionary];
-        }
-        
-        HKQuantityType *quantityType = (HKQuantityType *)objectType;
-        
-        dispatch_semaphore_t sem = dispatch_semaphore_create(0);
-        [_healthStore preferredUnitsForQuantityTypes:[NSSet setWithObject:quantityType] completion:^(NSDictionary *preferredUnits, NSError *error) {
-            
-            unit = preferredUnits[quantityType];
-            
-            dispatch_semaphore_signal(sem);
-        }];
-        dispatch_semaphore_wait(sem, DISPATCH_TIME_FOREVER);
-        
-        if (unit) {
-            _unitsTable[objectType] = unit;
-        }
-    }
+//    if (unit == nil && [objectType isKindOfClass:[HKQuantityType class]] && [HKHealthStore isHealthDataAvailable]) {
+//        unit = _unitsTable[objectType];
+//        if (unit) {
+//            return unit;
+//        }
+//        if (!_unitsTable) {
+//            _unitsTable = [NSMutableDictionary dictionary];
+//        }
+//        
+//        HKQuantityType *quantityType = (HKQuantityType *)objectType;
+//        
+//        dispatch_semaphore_t sem = dispatch_semaphore_create(0);
+//        [_healthStore preferredUnitsForQuantityTypes:[NSSet setWithObject:quantityType] completion:^(NSDictionary *preferredUnits, NSError *error) {
+//            
+//            unit = preferredUnits[quantityType];
+//            
+//            dispatch_semaphore_signal(sem);
+//        }];
+//        dispatch_semaphore_wait(sem, DISPATCH_TIME_FOREVER);
+//        
+//        if (unit) {
+//            _unitsTable[objectType] = unit;
+//        }
+//    }
     return unit;
 }
 

@@ -205,10 +205,10 @@ ORK_DESIGNATE_CODING_AND_SERIALIZATION_INITIALIZERS(ORKTimeIntervalAnswerFormat)
 
 @interface ORKAnswerDefaultSource : NSObject
 
-+ (instancetype)sourceWithHealthStore:(HKHealthStore *)healthStore;
-- (instancetype)initWithHealthStore:(HKHealthStore *)healthStore NS_DESIGNATED_INITIALIZER;
+//+ (instancetype)sourceWithHealthStore:(HKHealthStore *)healthStore;
+//- (instancetype)initWithHealthStore:(HKHealthStore *)healthStore NS_DESIGNATED_INITIALIZER;
 
-@property (nonatomic, strong, readonly, nullable) HKHealthStore *healthStore;
+//@property (nonatomic, strong, readonly, nullable) HKHealthStore *healthStore;
 
 - (void)fetchDefaultValueForAnswerFormat:(nullable ORKAnswerFormat *)answerFormat handler:(void(^)(id defaultValue, NSError *error))handler;
 

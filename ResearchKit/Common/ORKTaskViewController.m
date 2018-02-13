@@ -354,29 +354,29 @@ static NSString *const _ChildNavigationControllerRestorationKey = @"childNavigat
     return [[UIBarButtonItem alloc] initWithTitle:ORKLocalizedString(@"BUTTON_LEARN_MORE", nil) style:UIBarButtonItemStylePlain target:self action:@selector(learnMoreAction:)];
 }
 
-- (void)requestHealthStoreAccessWithReadTypes:(NSSet *)readTypes
-                                   writeTypes:(NSSet *)writeTypes
-                                      handler:(void (^)(void))handler {
-    NSParameterAssert(handler != nil);
-    if ((![HKHealthStore isHealthDataAvailable]) || (!readTypes && !writeTypes)) {
-        _requestedHealthTypesForRead = nil;
-        _requestedHealthTypesForWrite = nil;
-        handler();
-        return;
-    }
-    
-    _requestedHealthTypesForRead = readTypes;
-    _requestedHealthTypesForWrite = writeTypes;
-    
-    __block HKHealthStore *healthStore = [HKHealthStore new];
-    [healthStore requestAuthorizationToShareTypes:writeTypes readTypes:readTypes completion:^(BOOL success, NSError *error) {
-        ORK_Log_Warning(@"Health access: error=%@", error);
-        dispatch_async(dispatch_get_main_queue(), handler);
-        
-        // Clear self-ref.
-        healthStore = nil;
-    }];
-}
+//- (void)requestHealthStoreAccessWithReadTypes:(NSSet *)readTypes
+//                                   writeTypes:(NSSet *)writeTypes
+//                                      handler:(void (^)(void))handler {
+//    NSParameterAssert(handler != nil);
+//    if ((![HKHealthStore isHealthDataAvailable]) || (!readTypes && !writeTypes)) {
+//        _requestedHealthTypesForRead = nil;
+//        _requestedHealthTypesForWrite = nil;
+//        handler();
+//        return;
+//    }
+//
+//    _requestedHealthTypesForRead = readTypes;
+//    _requestedHealthTypesForWrite = writeTypes;
+//
+//    __block HKHealthStore *healthStore = [HKHealthStore new];
+//    [healthStore requestAuthorizationToShareTypes:writeTypes readTypes:readTypes completion:^(BOOL success, NSError *error) {
+//        ORK_Log_Warning(@"Health access: error=%@", error);
+//        dispatch_async(dispatch_get_main_queue(), handler);
+//
+//        // Clear self-ref.
+//        healthStore = nil;
+//    }];
+//}
 
 - (void)requestPedometerAccessWithHandler:(void (^)(BOOL success))handler {
     NSParameterAssert(handler != nil);
@@ -455,107 +455,107 @@ static NSString *const _ChildNavigationControllerRestorationKey = @"childNavigat
     return permissions;
 }
 
-- (void)requestHealthAuthorizationWithCompletion:(void (^)(void))completion {
-    if (_hasRequestedHealthData) {
-        if (completion) completion();
-        return;
-    }
-    
-    NSSet *readTypes = nil;
-    if ([self.task respondsToSelector:@selector(requestedHealthKitTypesForReading)]) {
-        readTypes = [self.task requestedHealthKitTypesForReading];
-    }
-    
-    NSSet *writeTypes = nil;
-    if ([self.task respondsToSelector:@selector(requestedHealthKitTypesForWriting)]) {
-        writeTypes = [self.task requestedHealthKitTypesForWriting];
-    }
-    
-    ORKPermissionMask permissions = [self desiredPermissions];
-    
-    dispatch_semaphore_t semaphore = dispatch_semaphore_create(0);
-    
-    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0), ^{
-        dispatch_async(dispatch_get_main_queue(), ^{
-            ORK_Log_Debug(@"Requesting health access");
-            [self requestHealthStoreAccessWithReadTypes:readTypes
-                                             writeTypes:writeTypes
-                                                handler:^{
-                                                    dispatch_semaphore_signal(semaphore);
-                                                }];
-        });
-        dispatch_semaphore_wait(semaphore, DISPATCH_TIME_FOREVER);
-        if (permissions & ORKPermissionCoreMotionAccelerometer) {
-            _grantedPermissions |= ORKPermissionCoreMotionAccelerometer;
-        }
-        if (permissions & ORKPermissionCoreMotionActivity) {
-            dispatch_async(dispatch_get_main_queue(), ^{
-                ORK_Log_Debug(@"Requesting pedometer access");
-                [self requestPedometerAccessWithHandler:^(BOOL success) {
-                    if (success) {
-                        _grantedPermissions |= ORKPermissionCoreMotionActivity;
-                    } else {
-                        _grantedPermissions &= ~ORKPermissionCoreMotionActivity;
-                    }
-                    dispatch_semaphore_signal(semaphore);
-                }];
-            });
-            
-            dispatch_semaphore_wait(semaphore, DISPATCH_TIME_FOREVER);
-        }
-        if (permissions & ORKPermissionAudioRecording) {
-            dispatch_async(dispatch_get_main_queue(), ^{
-                ORK_Log_Debug(@"Requesting audio access");
-                [self requestAudioRecordingAccessWithHandler:^(BOOL success) {
-                    if (success) {
-                        _grantedPermissions |= ORKPermissionAudioRecording;
-                    } else {
-                        _grantedPermissions &= ~ORKPermissionAudioRecording;
-                    }
-                    dispatch_semaphore_signal(semaphore);
-                }];
-            });
-            
-            dispatch_semaphore_wait(semaphore, DISPATCH_TIME_FOREVER);
-        }
-        if (permissions & ORKPermissionCoreLocation) {
-            dispatch_async(dispatch_get_main_queue(), ^{
-                ORK_Log_Debug(@"Requesting location access");
-                [self requestLocationAccessWithHandler:^(BOOL success) {
-                    if (success) {
-                        _grantedPermissions |= ORKPermissionCoreLocation;
-                    } else {
-                        _grantedPermissions &= ~ORKPermissionCoreLocation;
-                    }
-                    dispatch_semaphore_signal(semaphore);
-                }];
-            });
-            
-            dispatch_semaphore_wait(semaphore, DISPATCH_TIME_FOREVER);
-        }
-        if (permissions & ORKPermissionCamera) {
-            dispatch_async(dispatch_get_main_queue(), ^{
-                ORK_Log_Debug(@"Requesting camera access");
-                [self requestCameraAccessWithHandler:^(BOOL success) {
-                    if (success) {
-                        _grantedPermissions |= ORKPermissionCamera;
-                    } else {
-                        _grantedPermissions &= ~ORKPermissionCamera;
-                    }
-                    dispatch_semaphore_signal(semaphore);
-                }];
-            });
-            
-            dispatch_semaphore_wait(semaphore, DISPATCH_TIME_FOREVER);
-        }
-        
-        _hasRequestedHealthData = YES;
-        dispatch_async(dispatch_get_main_queue(), ^{
-            _hasRequestedHealthData = YES;
-            if (completion) completion();
-        });
-    });
-}
+//- (void)requestHealthAuthorizationWithCompletion:(void (^)(void))completion {
+//    if (_hasRequestedHealthData) {
+//        if (completion) completion();
+//        return;
+//    }
+//
+//    NSSet *readTypes = nil;
+//    if ([self.task respondsToSelector:@selector(requestedHealthKitTypesForReading)]) {
+//        readTypes = [self.task requestedHealthKitTypesForReading];
+//    }
+//
+//    NSSet *writeTypes = nil;
+//    if ([self.task respondsToSelector:@selector(requestedHealthKitTypesForWriting)]) {
+//        writeTypes = [self.task requestedHealthKitTypesForWriting];
+//    }
+//
+//    ORKPermissionMask permissions = [self desiredPermissions];
+//
+//    dispatch_semaphore_t semaphore = dispatch_semaphore_create(0);
+//
+//    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0), ^{
+//        dispatch_async(dispatch_get_main_queue(), ^{
+//            ORK_Log_Debug(@"Requesting health access");
+//            [self requestHealthStoreAccessWithReadTypes:readTypes
+//                                             writeTypes:writeTypes
+//                                                handler:^{
+//                                                    dispatch_semaphore_signal(semaphore);
+//                                                }];
+//        });
+//        dispatch_semaphore_wait(semaphore, DISPATCH_TIME_FOREVER);
+//        if (permissions & ORKPermissionCoreMotionAccelerometer) {
+//            _grantedPermissions |= ORKPermissionCoreMotionAccelerometer;
+//        }
+//        if (permissions & ORKPermissionCoreMotionActivity) {
+//            dispatch_async(dispatch_get_main_queue(), ^{
+//                ORK_Log_Debug(@"Requesting pedometer access");
+//                [self requestPedometerAccessWithHandler:^(BOOL success) {
+//                    if (success) {
+//                        _grantedPermissions |= ORKPermissionCoreMotionActivity;
+//                    } else {
+//                        _grantedPermissions &= ~ORKPermissionCoreMotionActivity;
+//                    }
+//                    dispatch_semaphore_signal(semaphore);
+//                }];
+//            });
+//
+//            dispatch_semaphore_wait(semaphore, DISPATCH_TIME_FOREVER);
+//        }
+//        if (permissions & ORKPermissionAudioRecording) {
+//            dispatch_async(dispatch_get_main_queue(), ^{
+//                ORK_Log_Debug(@"Requesting audio access");
+//                [self requestAudioRecordingAccessWithHandler:^(BOOL success) {
+//                    if (success) {
+//                        _grantedPermissions |= ORKPermissionAudioRecording;
+//                    } else {
+//                        _grantedPermissions &= ~ORKPermissionAudioRecording;
+//                    }
+//                    dispatch_semaphore_signal(semaphore);
+//                }];
+//            });
+//
+//            dispatch_semaphore_wait(semaphore, DISPATCH_TIME_FOREVER);
+//        }
+//        if (permissions & ORKPermissionCoreLocation) {
+//            dispatch_async(dispatch_get_main_queue(), ^{
+//                ORK_Log_Debug(@"Requesting location access");
+//                [self requestLocationAccessWithHandler:^(BOOL success) {
+//                    if (success) {
+//                        _grantedPermissions |= ORKPermissionCoreLocation;
+//                    } else {
+//                        _grantedPermissions &= ~ORKPermissionCoreLocation;
+//                    }
+//                    dispatch_semaphore_signal(semaphore);
+//                }];
+//            });
+//
+//            dispatch_semaphore_wait(semaphore, DISPATCH_TIME_FOREVER);
+//        }
+//        if (permissions & ORKPermissionCamera) {
+//            dispatch_async(dispatch_get_main_queue(), ^{
+//                ORK_Log_Debug(@"Requesting camera access");
+//                [self requestCameraAccessWithHandler:^(BOOL success) {
+//                    if (success) {
+//                        _grantedPermissions |= ORKPermissionCamera;
+//                    } else {
+//                        _grantedPermissions &= ~ORKPermissionCamera;
+//                    }
+//                    dispatch_semaphore_signal(semaphore);
+//                }];
+//            });
+//
+//            dispatch_semaphore_wait(semaphore, DISPATCH_TIME_FOREVER);
+//        }
+//
+//        _hasRequestedHealthData = YES;
+//        dispatch_async(dispatch_get_main_queue(), ^{
+//            _hasRequestedHealthData = YES;
+//            if (completion) completion();
+//        });
+//    });
+//}
 
 - (void)startAudioPromptSessionIfNeeded {
     id<ORKTask> task = self.task;
@@ -646,10 +646,10 @@ static NSString *const _ChildNavigationControllerRestorationKey = @"childNavigat
         ORKStep *step = [self nextStep];
         if ([self shouldPresentStep:step]) {
             
-            if (![step isKindOfClass:[ORKInstructionStep class]]) {
-                [self startAudioPromptSessionIfNeeded];
-                [self requestHealthAuthorizationWithCompletion:nil];
-            }
+//            if (![step isKindOfClass:[ORKInstructionStep class]]) {
+//                [self startAudioPromptSessionIfNeeded];
+//                [self requestHealthAuthorizationWithCompletion:nil];
+//            }
             
             ORKStepViewController *firstViewController = [self viewControllerForStep:step];
             [self showViewController:firstViewController goForward:YES animated:animated];
@@ -884,29 +884,29 @@ static NSString *const _ChildNavigationControllerRestorationKey = @"childNavigat
     }
     
     ORKStepViewController *fromController = self.currentStepViewController;
-    if (fromController && animated && [self isStepLastBeginningInstructionStep:fromController.step]) {
-        [self startAudioPromptSessionIfNeeded];
-        
-        if ( [self grantedAtLeastOnePermission] == NO) {
-            // Do the health request and THEN proceed.
-            [self requestHealthAuthorizationWithCompletion:^{
-                
-                // If we are able to collect any data, proceed.
-                // An alternative rule would be to never proceed if any permission fails.
-                // However, since iOS does not re-present requests for access, we
-                // can easily fail even if the user does not see a dialog, which would
-                // be highly unexpected.
-                if ([self grantedAtLeastOnePermission] == NO) {
-                    [self reportError:[NSError errorWithDomain:NSCocoaErrorDomain
-                                                          code:NSUserCancelledError userInfo:@{@"reason" : @"Required permissions not granted."}]
-                               onStep:fromController.step];
-                } else {
-                    [self showViewController:viewController goForward:goForward animated:animated];
-                }
-            }];
-            return;
-        }
-    }
+//    if (fromController && animated && [self isStepLastBeginningInstructionStep:fromController.step]) {
+//        [self startAudioPromptSessionIfNeeded];
+//
+//        if ( [self grantedAtLeastOnePermission] == NO) {
+//            // Do the health request and THEN proceed.
+//            [self requestHealthAuthorizationWithCompletion:^{
+//
+//                // If we are able to collect any data, proceed.
+//                // An alternative rule would be to never proceed if any permission fails.
+//                // However, since iOS does not re-present requests for access, we
+//                // can easily fail even if the user does not see a dialog, which would
+//                // be highly unexpected.
+//                if ([self grantedAtLeastOnePermission] == NO) {
+//                    [self reportError:[NSError errorWithDomain:NSCocoaErrorDomain
+//                                                          code:NSUserCancelledError userInfo:@{@"reason" : @"Required permissions not granted."}]
+//                               onStep:fromController.step];
+//                } else {
+//                    [self showViewController:viewController goForward:goForward animated:animated];
+//                }
+//            }];
+//            return;
+//        }
+//    }
     
     if (step.identifier && ![_managedStepIdentifiers.lastObject isEqualToString:step.identifier]) {
         [_managedStepIdentifiers addObject:step.identifier];

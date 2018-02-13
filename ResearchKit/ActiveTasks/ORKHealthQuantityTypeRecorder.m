@@ -40,7 +40,7 @@
 @interface ORKHealthQuantityTypeRecorder () {
     ORKDataLogger *_logger;
     BOOL _isRecording;
-    HKHealthStore *_healthStore;
+//    HKHealthStore *_healthStore;
     NSPredicate *_samplePredicate;
     HKObserverQuery *_observerQuery;
     NSInteger _anchor;
@@ -122,30 +122,30 @@ static const NSInteger _HealthAnchoredQueryLimit = 100;
 }
 
 - (void)doFetchNewData {
-    if (!_healthStore || !_isRecording) {
-        return;
-    }
-    NSAssert(_samplePredicate != nil, @"Sample predicate should be non-nil if recording");
-    
-    __weak typeof(self) weakSelf = self;
-    HKAnchoredObjectQuery *anchoredQuery = [[HKAnchoredObjectQuery alloc]
-                                            initWithType:_quantityType
-                                            predicate:_samplePredicate
-                                            anchor:_anchor
-                                            limit:_HealthAnchoredQueryLimit
-                                            completionHandler:^(HKAnchoredObjectQuery *query, NSArray *results, NSUInteger newAnchor, NSError *error)
-                                            {
-                                                if (error) {
-                                                    // An error in the query's not the end of the world: we'll probably get another chance. Just log it.
-                                                    ORK_Log_Warning(@"Anchored query error: %@", error);
-                                                    return;
-                                                }
-                                                
-                                                __typeof(self) strongSelf = weakSelf;
-                                                [strongSelf query_logResults:results withAnchor:newAnchor];
-                                                
-                                            }];
-    [_healthStore executeQuery:anchoredQuery];
+//    if (!_healthStore || !_isRecording) {
+//        return;
+//    }
+//    NSAssert(_samplePredicate != nil, @"Sample predicate should be non-nil if recording");
+//
+//    __weak typeof(self) weakSelf = self;
+//    HKAnchoredObjectQuery *anchoredQuery = [[HKAnchoredObjectQuery alloc]
+//                                            initWithType:_quantityType
+//                                            predicate:_samplePredicate
+//                                            anchor:_anchor
+//                                            limit:_HealthAnchoredQueryLimit
+//                                            completionHandler:^(HKAnchoredObjectQuery *query, NSArray *results, NSUInteger newAnchor, NSError *error)
+//                                            {
+//                                                if (error) {
+//                                                    // An error in the query's not the end of the world: we'll probably get another chance. Just log it.
+//                                                    ORK_Log_Warning(@"Anchored query error: %@", error);
+//                                                    return;
+//                                                }
+//
+//                                                __typeof(self) strongSelf = weakSelf;
+//                                                [strongSelf query_logResults:results withAnchor:newAnchor];
+//
+//                                            }];
+//    [_healthStore executeQuery:anchoredQuery];
 }
 
 - (void)start {
@@ -160,23 +160,23 @@ static const NSInteger _HealthAnchoredQueryLimit = 100;
         }
     }
     
-    if (![HKHealthStore isHealthDataAvailable]) {
-        [self finishRecordingWithError:[NSError errorWithDomain:NSCocoaErrorDomain
-                                                           code:NSFeatureUnsupportedError
-                                                       userInfo:@{@"recorder" : self}]];
-        return;
-    }
-    
-    if (!_healthStore) {
-        // Get a new obsever query
-        _healthStore = [HKHealthStore new];
-    } else {
-        // Reset
-        if (_observerQuery) {
-            [_healthStore stopQuery:_observerQuery];
-            _observerQuery = nil;
-        }
-    }
+//    if (![HKHealthStore isHealthDataAvailable]) {
+//        [self finishRecordingWithError:[NSError errorWithDomain:NSCocoaErrorDomain
+//                                                           code:NSFeatureUnsupportedError
+//                                                       userInfo:@{@"recorder" : self}]];
+//        return;
+//    }
+//    
+//    if (!_healthStore) {
+//        // Get a new obsever query
+//        _healthStore = [HKHealthStore new];
+//    } else {
+//        // Reset
+//        if (_observerQuery) {
+//            [_healthStore stopQuery:_observerQuery];
+//            _observerQuery = nil;
+//        }
+//    }
     
     _lastSample = nil;
     _samplePredicate = [HKQuery predicateForSamplesWithStartDate:[NSDate date] endDate:nil options:HKQueryOptionStrictStartDate];
@@ -204,7 +204,7 @@ static const NSInteger _HealthAnchoredQueryLimit = 100;
                       }];
     
     _isRecording = YES;
-    [_healthStore executeQuery:_observerQuery];
+//    [_healthStore executeQuery:_observerQuery];
 }
 
 - (NSString *)recorderType {
@@ -231,16 +231,16 @@ static const NSInteger _HealthAnchoredQueryLimit = 100;
 }
 
 - (void)doStopRecording {
-    if (_isRecording) {
-        NSAssert(_observerQuery != nil, @"Observer query should be non-nil when recording");
-        [_healthStore stopQuery:_observerQuery];
-        _observerQuery = nil;
-        
-        _samplePredicate = nil;
-        _isRecording = NO;
-        
-        [self updateMostRecentSample:nil];
-    }
+//    if (_isRecording) {
+//        NSAssert(_observerQuery != nil, @"Observer query should be non-nil when recording");
+//        [_healthStore stopQuery:_observerQuery];
+//        _observerQuery = nil;
+//
+//        _samplePredicate = nil;
+//        _isRecording = NO;
+//
+//        [self updateMostRecentSample:nil];
+//    }
 }
 
 - (void)finishRecordingWithError:(NSError *)error {

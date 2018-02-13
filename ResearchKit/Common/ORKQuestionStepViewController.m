@@ -130,9 +130,9 @@ typedef NS_ENUM(NSInteger, ORKQuestionSection) {
 
 - (instancetype)initWithStep:(ORKStep *)step {
     self = [super initWithStep:step];
-    if (self) {
-        _defaultSource = [ORKAnswerDefaultSource sourceWithHealthStore:[HKHealthStore new]];
-    }
+//    if (self) {
+//        _defaultSource = [ORKAnswerDefaultSource sourceWithHealthStore:nil];
+//    }
     return self;
 }
 
@@ -276,19 +276,19 @@ typedef NS_ENUM(NSInteger, ORKQuestionSection) {
     }
     
     BOOL scheduledRefresh = NO;
-    if (types.count) {
-        NSSet<HKObjectType *> *alreadyRequested = [[self taskViewController] requestedHealthTypesForRead];
-        if (![types isSubsetOfSet:alreadyRequested]) {
-            scheduledRefresh = YES;
-            [_defaultSource.healthStore requestAuthorizationToShareTypes:nil readTypes:types completion:^(BOOL success, NSError *error) {
-                if (success) {
-                    dispatch_async(dispatch_get_main_queue(), ^{
-                        [self refreshDefaults];
-                    });
-                }
-            }];
-        }
-    }
+//    if (types.count) {
+//        NSSet<HKObjectType *> *alreadyRequested = [[self taskViewController] requestedHealthTypesForRead];
+//        if (![types isSubsetOfSet:alreadyRequested]) {
+//            scheduledRefresh = YES;
+//            [_defaultSource.healthStore requestAuthorizationToShareTypes:nil readTypes:types completion:^(BOOL success, NSError *error) {
+//                if (success) {
+//                    dispatch_async(dispatch_get_main_queue(), ^{
+//                        [self refreshDefaults];
+//                    });
+//                }
+//            }];
+//        }
+//    }
     if (!scheduledRefresh) {
         [self refreshDefaults];
     }
@@ -312,16 +312,16 @@ typedef NS_ENUM(NSInteger, ORKQuestionSection) {
 }
 
 - (void)refreshDefaults {
-    [_defaultSource fetchDefaultValueForAnswerFormat:[[self questionStep] answerFormat] handler:^(id defaultValue, NSError *error) {
-        if (defaultValue != nil || error == nil) {
-            dispatch_async(dispatch_get_main_queue(), ^{
-                _defaultAnswer = defaultValue;
-                [self defaultAnswerDidChange];
-            });
-        } else {
-            ORK_Log_Warning(@"Error fetching default: %@", error);
-        }
-    }];
+//    [_defaultSource fetchDefaultValueForAnswerFormat:[[self questionStep] answerFormat] handler:^(id defaultValue, NSError *error) {
+//        if (defaultValue != nil || error == nil) {
+//            dispatch_async(dispatch_get_main_queue(), ^{
+//                _defaultAnswer = defaultValue;
+//                [self defaultAnswerDidChange];
+//            });
+//        } else {
+//            ORK_Log_Warning(@"Error fetching default: %@", error);
+//        }
+//    }];
 }
 
 - (void)defaultAnswerDidChange {
